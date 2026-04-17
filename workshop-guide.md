@@ -30,6 +30,11 @@ Pošli účastníkům checklist:
 4. Na vercel.com se přihlásíš a vidíš dashboard
 5. Claude Code funguje (`claude` v terminálu → reaguje na prompty)
 
+**Poznámka lektora:** V emailu zmiň, že na začátku workshopu se `/hack-check`
+zeptá na jejich úroveň (začátečník / pokročilý / zkušený) a agenti se jí
+přizpůsobí. Default je "pokročilý" a lze kdykoliv přepsat v souboru
+`.participant-level`. Ať přemýšlí dopředu — nebudou zaskočení.
+
 ### Nice to have
 
 - VS Code (jako fallback editor)
@@ -56,16 +61,23 @@ workshop-kit/
 ├── .gitignore                       # Připravený gitignore
 └── .claude/
     └── commands/
-        ├── prd.md                   # /project:prd — PRD agent
-        ├── scaffold.md              # /project:scaffold — Scaffold agent
-        ├── deploy.md                # /project:deploy — Deploy agent
-        └── feature.md              # /project:feature — Feature agent
+        # ── Základní track (pro všechny) ──
+        ├── hack-check.md           # /hack-check — Setup check
+        ├── hack-prd.md             # /hack-prd — PRD agent
+        ├── hack-scaffold.md        # /hack-scaffold — Scaffold agent
+        ├── hack-deploy.md          # /hack-deploy — Deploy agent
+        ├── hack-feature.md         # /hack-feature — Feature agent
+        ├── hack-review.md          # /hack-review — Reviewer (druhý pár očí)
+        # ── Advanced track (volitelné, pro rychlejší) ──
+        ├── hack-feature-pro.md     # /hack-feature-pro — Orchestrátor se subagenty
+        ├── hack-test.md            # /hack-test — Vitest setup a první testy
+        └── hack-ci.md              # /hack-ci — GitHub Actions pipeline
 ```
 
 Agenti jsou implementovaní jako Claude Code custom commands (`.claude/commands/`).
-Účastník je spouští přes `/project:prd`, `/project:scaffold` atd.
-Každý agent navazuje na předchozí — PRD agent na konci řekne "spusť /project:scaffold",
-scaffold agent na konci řekne "spusť /project:deploy" atd.
+Všechny příkazy mají prefix `hack-` — účastník napíše `/hack` a uvidí všechny dostupné.
+Každý agent navazuje na předchozí — PRD agent na konci řekne "spusť /hack-scaffold",
+scaffold agent na konci řekne "spusť /hack-deploy" atd.
 
 ---
 
@@ -86,6 +98,18 @@ scaffold agent na konci řekne "spusť /project:deploy" atd.
 
 - Ukázat hotovou appku (připravit předem) — "tohle vzniklo za 30 minut čistě přes prompty"
 - Ukázat živou URL na Vercelu — "a běží to na internetu"
+
+**Adaptivní agenti — krátká zmínka:**
+
+Agenti v kitu se přizpůsobují úrovni účastníka (junior / medior / senior).
+`/hack-check` se tě na úroveň zeptá a uloží ji do `.participant-level`. Všichni
+další agenti pak podle toho tlumí nebo zesilují hand-holding.
+
+> "Nebojte se být upřímní. Junior neznamená že jste hloupí — znamená to, že
+> Claude vám bude víc pomáhat. Senior neznamená že jste génius — znamená to,
+> že vás bude víc challengovat."
+
+Řekni, že to lze kdykoliv přepsat v `.participant-level` (jednořádkový text).
 
 ---
 
@@ -110,16 +134,15 @@ scaffold agent na konci řekne "spusť /project:deploy" atd.
 
 **PRD agent:**
 
-Účastníci nemusí sami vymýšlet prompt. Místo toho použijí připraveného PRD agenta
-(viz `prd-agent-prompt.md`), který je provede celým procesem krok po kroku —
-ptá se jednu otázku po druhé a na konci vygeneruje hotové PRD včetně SQL.
+Účastníci spustí `/hack-prd` — připravený PRD agent je provede celým procesem
+krok po kroku. Ptá se jednu otázku po druhé a na konci vygeneruje hotové PRD včetně SQL.
 
 Na projektoru ukázat, jak vypadá konverzace s agentem (připravit demo předem).
 
 **Aktivita (15 min):**
 
 1. Účastníci spustí Claude Code ve svém `workshop-kit` adresáři
-2. Zadají příkaz `/project:prd`
+2. Zadají příkaz `/hack-prd`
 3. PRD agent se jich bude ptát krok po kroku — problém, uživatel, akce, scope, datový model
 4. Na konci dostanou hotové PRD včetně SQL a Mermaid ER diagramu (uloží se jako `PRD.md`)
 
@@ -253,8 +276,27 @@ Moment oslavy — každý má appku na internetu. Může si ji otevřít na mobi
 2. ~~Živá URL~~ ✓ (máte z deploye)
 3. Hezčí UI (lepší layout, barvy, spacing)
 4. Extra feature (filtrování, řazení, kategorie, vyhledávání...)
-5. Auth (login/signup)
-6. UX polish (loading states, prázdné stavy, validace)
+5. Reviewer pass — `/hack-review` po každé větší změně
+6. Auth (login/signup)
+7. UX polish (loading states, prázdné stavy, validace)
+
+**Multi-agent moment — Reviewer (ukázat cca v 20. minutě Bloku 5):**
+
+Tohle je pedagogický highlight. Po tom, co účastníci postavili první feature
+přes `/hack-feature`, zastavit a říct:
+
+> "AI napsala nějaký kód. Vypadá to v pohodě. Ale věříte tomu? Vibe coding má
+> pověst toho, že AI napíše něco, co vypadá OK, ale má díry — missing RLS,
+> hardcoded klíč v repo, chybí loading state. Řešení: druhá AI, která čte
+> cizí kód čerstvýma očima. Pusťte `/hack-review`."
+
+Po spuštění `/hack-review`:
+- Reviewer projde diff, vypíše max 5 bodů (blocker / warning / nitpick)
+- Účastník vezme blockery a vrátí se k `/hack-feature`: "Oprav tohle: [seznam]"
+- Cyklus: feature → review → oprava → review → push
+
+Tohle je **multi-agent kooperace v praxi** — jeden staví, druhý revizne.
+Přibližně po 20 min od začátku Bloku 5 to krátce ukázat na projektoru.
 
 **Redeploy workflow (ukázat na projektoru):**
 
@@ -320,6 +362,45 @@ Stop. Tohle je špatný směr. Vrať se k předchozí fungující verzi a místo
 | Styling je rozbitý | "Oprav layout. Tady je screenshot jak to vypadá: [popis]" |
 | TypeScript errory | "Oprav TypeScript errory. Tady je výstup z npm run dev: [error]" |
 | Vercel build failed | Zkontrolovat build log ve Vercel dashboardu, fix lokálně, push znovu |
+
+---
+
+### Advanced track — pro rychlejší účastníky
+
+V průběhu Bloku 5 někteří účastníci zjevně budou rychlejší než ostatní (typicky
+ti, co už něco kódovali). Místo "čekání na zbytek" jim nabídni jednu ze tří
+větví. Zmínit na projektoru ~ v polovině Bloku 5:
+
+> "Kdo je rychle hotový s první feature a deployem, má bonus track. Na výběr:
+> testy, CI pipeline, nebo multi-agent orchestrátor pro větší feature."
+
+**`/hack-test` — pro ty, co chtějí "seriózní projekt"**
+- Nainstaluje Vitest + React Testing Library
+- Napíše 5–8 úvodních testů (utility, komponenta, mockovaný Supabase)
+- `npm test` musí běžet zeleně
+- Typický čas: 10–15 min
+
+**`/hack-ci` — pro ty, co už mají testy nebo chtějí CI bez nich**
+- Vytvoří `.github/workflows/ci.yml`
+- Lint + typecheck + (test) + build na každém push a PR
+- Účastník musí přidat Supabase env secrets do GitHub repo settings
+- Typický čas: 10 min
+
+**`/hack-feature-pro` — pro ty, co chtějí větší feature**
+- Orchestrátor, co rozloží task na backend + frontend + smoke test subagenty
+- Vhodné pro feature co se dotýká DB i UI (např. "přidej kategorie s barvami
+  a filtrování")
+- Ukazuje multi-agent pattern "dispatcher + specialisti"
+- Typický čas: 15–20 min
+
+**Jak to rámovat pro ty pomalejší:**
+
+Řekni výslovně: "Advanced je bonus, ne povinnost. Cíl workshopu je deploynutá
+appka, ne velká testovací suite. Kdo ještě dokončuje základní feature, pokračuje
+tam."
+
+**Lektorská poznámka:** Advanced agenti mají v `description` prefix `[ADVANCED]`,
+takže v Claude Code autocomplete je účastníci poznají. Nechtěně je tedy nespustí.
 
 ---
 
@@ -399,6 +480,12 @@ Dej kontext:      "Mám tabulku 'todos' se sloupci id, title, done. Přidej..."
 Malé kroky:       Jeden prompt = jedna feature/fix
 Když bloudí:      "Stop. Vrať se k jednoduššímu řešení."
 Debug:            "Nefunguje X. Error: [vlož error]. Oprav to."
+
+== CLAUDE CODE PŘÍKAZY ==
+Základní:         /hack-check, /hack-prd, /hack-scaffold, /hack-deploy
+                  /hack-feature, /hack-review
+Advanced (bonus): /hack-test, /hack-ci, /hack-feature-pro
+Tip:              Napiš /hack a uvidíš autocomplete všech
 ```
 
 ### Záložní plán
